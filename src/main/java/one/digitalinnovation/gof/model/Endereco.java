@@ -12,13 +12,12 @@ import javax.persistence.Id;
  *
  * @author AlcidesThiago2016
  */
-
+@Getter
+@Setter
 @Entity
 public class Endereco {
 
     @Id
-    @Setter
-    @Getter
     private String cep;
     private String logradouro;
     private String complemento;
@@ -29,4 +28,5 @@ public class Endereco {
     private String gia;
     private String ddd;
     private String siafi;
+
 }

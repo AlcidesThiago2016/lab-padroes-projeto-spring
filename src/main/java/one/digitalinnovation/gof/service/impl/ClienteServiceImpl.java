@@ -1,8 +1,15 @@
 package one.digitalinnovation.gof.service.impl;
 
 import one.digitalinnovation.gof.model.Cliente;
+import one.digitalinnovation.gof.model.ClienteRepository;
+import one.digitalinnovation.gof.model.Endereco;
+import one.digitalinnovation.gof.model.EnderecoRepository;
 import one.digitalinnovation.gof.service.ClienteService;
+import one.digitalinnovation.gof.service.ViaCepService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Implementação da <b>Strategy</b> {@link ClienteService}, a qual pode ser injetada pelo Spring
@@ -12,32 +19,48 @@ import org.springframework.stereotype.Service;
 @Service
 public class ClienteServiceImpl implements ClienteService {
 
+    @Autowired
+    private ClienteRepository clienteRepository;
+
+    @Autowired
+    private EnderecoRepository enderecoRepository;
+    @Autowired
+    private ViaCepService viaCepService;
     @Override
     public Iterable<Cliente> buscarTodos(){
-        // FIXME Buscar todos os Clientes.
-        return null;
+        return clienteRepository.findAll();
     }
     @Override
     public Cliente buscarPorId(Long id){
-        // FIXME Buscar Cliente por ID.
-        return null;
+        Optional<Cliente> cliente = clienteRepository.findById(id);
+        return cliente.get();
     }
     @Override
     public void inserir(Cliente cliente){
-        // FIXME Verificar se o Endereço do Cliente já existe(pelo CEP).
-        // FIXME Caso não exista, integrar com o ViaCEP e persistir o retorno.
-        // FIXME Inserir Cliente, vinculando o Endereço (novo ou existente).
+        salvarClienteComCep(cliente);
     }
     @Override
     public void atualizar(Long id, Cliente cliente){
-        // FIXME Buscar Cliente por ID, caso exista:
-        // FIXME Verificar se o Endereço do Cliente já existe (Pelo CEP).
-        // FIXME Caso não exista, integrar com o ViaCEP e persistir o retorno.
-        // FIXME Alterar Cliente, vinculando o Endereço (novo ou existente).
+        Optional<Cliente> clientebd = clienteRepository.findById(id);
+        if (clientebd.isPresent()){
+            salvarClienteComCep(cliente);
+        }
     }
     @Override
     public void deletar(Long id){
-        // FIXME Deletar Cliente por ID.
+        clienteRepository.deleteById(id);
     }
+
+    private void salvarClienteComCep(Cliente cliente) {
+        String cep = cliente.getEndereco();
+        Endereco endereco = enderecoRepository.findById(cep).orElseGet(() -> {
+            Endereco novoEndereco = viaCepService.consultarCep(cep);
+            enderecoRepository.save(novoEndereco);
+            return null;
+        });
+        cliente.setEndereco(String.valueOf(endereco));
+        clienteRepository.save(cliente);
+    }
+
 
 }
