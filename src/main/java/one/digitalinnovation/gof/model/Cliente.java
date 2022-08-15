@@ -13,6 +13,5 @@ public class Cliente {
     @Getter
     private Long id;
     private String nome;
-    @ManyToOne
     private String endereco;
 }
